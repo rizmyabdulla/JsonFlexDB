@@ -16,40 +16,46 @@ npm install json-flex-db
 const JsonFlexDB = require("json-flex-db");
 
 // Create an instance of JsonFlexDB
-const flexDB = new JsonFlexDB("/path/to/data.json");
+const jsonDB = new JsonFlexDB("path/to/data.json");
 
 // Ensure indexes are created (optional)
-await flexDB.createIndex("category");
-await flexDB.createIndex("status");
+jsonDB
+  .createIndex("category")
+  .then(() => jsonDB.createIndex("status"))
+  .then(() => {
+    // Insert documents
+    const doc1 = {
+      _id: "1",
+      name: "Document 1",
+      category: "A",
+      status: "Active",
+    };
+    const doc2 = {
+      _id: "2",
+      name: "Document 2",
+      category: "B",
+      status: "Inactive",
+    };
 
-// Insert documents
-const doc1 = { _id: "1", name: "Document 1", category: "A", status: "Active" };
-const doc2 = {
-  _id: "2",
-  name: "Document 2",
-  category: "B",
-  status: "Inactive",
-};
+    return Promise.all([jsonDB.insert(doc1), jsonDB.insert(doc2)]);
+  })
+  .then(() => jsonDB.find({ category: "A" }))
+  .then((results) => {
+    console.log("Results based on category index:", results);
 
-await flexDB.insert(doc1);
-await flexDB.insert(doc2);
+    // Update documents
+    return jsonDB.update({ category: "A" }, { status: "Updated" });
+  })
+  .then(() => jsonDB.remove({ status: "Inactive" }))
+  .then(() => {
+    // Visualize the data
+    jsonDB.visualize();
 
-// Query based on indexed fields
-const results = await flexDB.find({ category: "A" });
-console.log("Results based on category index:", results);
-
-// Update documents
-await flexDB.update({ category: "A" }, { status: "Updated" });
-
-// Remove documents
-await flexDB.remove({ status: "Inactive" });
-
-// Visualize the data
-flexDB.visualize();
-
-// Export all data
-const allData = flexDB.getAll();
-console.log("All data:", allData);
+    // Export all data
+    const allData = jsonDB.getAll();
+    console.log("All data:", allData);
+  })
+  .catch((error) => console.error("Error:", error.message));
 ```
 
 ## API
