@@ -1,4 +1,3 @@
-
 # JsonFlexDB
 
 JsonFlexDB is a simple Node.js module for basic CRUD operations using a JSON file as a data store. It provides a lightweight alternative to more robust database systems for small-scale applications.
@@ -14,38 +13,43 @@ npm install json-flex-db
 ## Usage
 
 ```javascript
-const JsonFlexDB = require('json-flex-db');
+const JsonFlexDB = require("json-flex-db");
 
 // Create an instance of JsonFlexDB
-const JsonFlexDB = new JsonFlexDB('/path/to/data.json');
+const flexDB = new JsonFlexDB("/path/to/data.json");
 
 // Ensure indexes are created (optional)
-await JsonFlexDB.createIndex('category');
-await JsonFlexDB.createIndex('status');
+await flexDB.createIndex("category");
+await flexDB.createIndex("status");
 
 // Insert documents
-const doc1 = { _id: '1', name: 'Document 1', category: 'A', status: 'Active' };
-const doc2 = { _id: '2', name: 'Document 2', category: 'B', status: 'Inactive' };
+const doc1 = { _id: "1", name: "Document 1", category: "A", status: "Active" };
+const doc2 = {
+  _id: "2",
+  name: "Document 2",
+  category: "B",
+  status: "Inactive",
+};
 
-await JsonFlexDB.insert(doc1);
-await JsonFlexDB.insert(doc2);
+await flexDB.insert(doc1);
+await flexDB.insert(doc2);
 
 // Query based on indexed fields
-const results = await JsonFlexDB.find({ category: 'A' });
-console.log('Results based on category index:', results);
+const results = await flexDB.find({ category: "A" });
+console.log("Results based on category index:", results);
 
 // Update documents
-await JsonFlexDB.update({ category: 'A' }, { status: 'Updated' });
+await flexDB.update({ category: "A" }, { status: "Updated" });
 
 // Remove documents
-await JsonFlexDB.remove({ status: 'Inactive' });
+await flexDB.remove({ status: "Inactive" });
 
 // Visualize the data
-JsonFlexDB.visualize();
+flexDB.visualize();
 
 // Export all data
-const allData = JsonFlexDB.getAll();
-console.log('All data:', allData);
+const allData = flexDB.getAll();
+console.log("All data:", allData);
 ```
 
 ## API
