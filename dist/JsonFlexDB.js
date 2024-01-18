@@ -262,6 +262,43 @@ class JsonFlexDB {
   }
 
   /**
+   * Finds a single document based on a query.
+   * @async
+   * @param {Object} query - The query object.
+   * @returns {Promise<Object|null>} A promise that resolves to the matching document or null if not found.
+   * @throws {Error} If there's an issue executing the findOne operation.
+   */
+  async findOne(query) {
+    try {
+      await this.ensureLoaded();
+
+      const results = await this.find(query);
+      return results.length > 0 ? this.data[results[0]] : null;
+    } catch (error) {
+      throw new Error(`Failed to execute findOne operation: ${error.message}`);
+    }
+  }
+
+  /**
+   * Gets the next available auto-incremented ID.
+   * @async
+   * @returns {Promise<number>} A promise that resolves to the next available ID.
+   */
+  async getAutoIncrementId() {
+    await this.ensureLoaded();
+
+    let maxId = 0;
+    for (const key in this.data) {
+      const id = parseInt(key);
+      if (!isNaN(id) && id > maxId) {
+        maxId = id;
+      }
+    }
+
+    return maxId + 1;
+  }
+
+  /**
    * Gets all documents in the database.
    * @returns {Object} An object representing all documents in the database.
    */

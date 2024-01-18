@@ -78,6 +78,12 @@ Finds documents based on a query.
 
 - `query`: The query object.
 
+### `async findOne(query: Object): Promise<Object | null>`
+
+Finds a single document based on a query.
+
+- `query` (Object): The query object.
+
 ### `async insert(document: Object): Promise<string>`
 
 Inserts a document into the database.
@@ -100,6 +106,10 @@ Removes documents based on a query.
 ### `getAll(): Object`
 
 Gets all documents in the database.
+
+### `async getAutoIncrementId(): Promise<number>`
+
+Gets the next available auto-incremented ID.
 
 ### `visualize(): void`
 
