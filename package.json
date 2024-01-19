@@ -1,10 +1,13 @@
 {
   "name": "@rizmyabdulla/json-flex-db",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "JsonFlexDB is a versatile Node.js module that provides a flexible and lightweight solution for basic CRUD operations using a JSON file as a data store. With JsonFlexDB, you can easily manage and query JSON-based data with the simplicity of a document-oriented database. It supports index creation for optimizing queries and offers a simple API for inserting, updating, querying, and removing documents. JsonFlexDB is ideal for small-scale applications, prototyping, or scenarios where a full-fledged database may be overkill.",
   "main": "dist/JsonFlexDB.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "repository": {
     "type": "git",
@@ -15,12 +18,15 @@
   },
   "keywords": [
     "json",
-    "database"  
+    "database"
   ],
   "author": "rizmy abdulla",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/RizmyAbdulla/JsonFlexDB/issues"
   },
-  "homepage": "https://github.com/RizmyAbdulla/JsonFlexDB#readme"
+  "homepage": "https://github.com/RizmyAbdulla/JsonFlexDB#readme",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
 }

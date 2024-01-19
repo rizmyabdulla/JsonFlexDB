@@ -1,10 +1,20 @@
 # JsonFlexDB
 
-JsonFlexDB is a simple Node.js module for basic CRUD operations using a JSON file as a data store. It provides a lightweight alternative to more robust database systems for small-scale applications.
+JsonFlexDB is a lightweight and versatile JSON-based database module for Node.js. It provides a simple yet powerful solution for handling data persistence in your applications. JsonFlexDB is suitable for a wide range of projects, from small-scale applications to large-scale systems.
+
+## Features
+
+- **Ease of Use:** JsonFlexDB offers a simple and intuitive API, making it easy for developers to perform CRUD operations on JSON-based data.
+
+- **Flexible Queries:** Perform queries on your data using a flexible and powerful query syntax. JsonFlexDB supports both indexed and non-indexed queries for efficient data retrieval.
+
+- **Async/Await Support:** Leverage the power of asynchronous programming with seamless async/await support for all database operations.
+
+- **Visualization:** Visualize your data directly in the console using the built-in `visualize` method, making it easier to understand the structure of your stored data.
 
 ## Installation
 
-Install the JsonFlexDB module using npm:
+To get started with JsonFlexDB, install it using npm:
 
 ```bash
 npm install json-flex-db
@@ -15,106 +25,131 @@ npm install json-flex-db
 ```javascript
 const JsonFlexDB = require("json-flex-db");
 
-// Create an instance of JsonFlexDB
-const jsonDB = new JsonFlexDB("path/to/data.json");
+// Initialize JsonFlexDB with the file path for your JSON data
+const db = new JsonFlexDB("data.json");
 
-// Ensure indexes are created (optional)
-jsonDB
-  .createIndex("category")
-  .then(() => jsonDB.createIndex("status"))
-  .then(() => {
-    // Insert documents
-    const doc1 = {
-      _id: "1",
-      name: "Document 1",
-      category: "A",
-      status: "Active",
-    };
-    const doc2 = {
-      _id: "2",
-      name: "Document 2",
-      category: "B",
-      status: "Inactive",
-    };
+// Example: Insert a new document
+const document1 = { _id: "1", name: "John Doe", age: 30 };
+const document2 = { _id: "2", name: "Sam Wilson", age: 32 };
+(async () => {
+  // Example: Insert Document1 and Document2
+  await db.insert(document1);
+  await db.insert(document2);
 
-    return Promise.all([jsonDB.insert(doc1), jsonDB.insert(doc2)]);
-  })
-  .then(() => jsonDB.find({ category: "A" }))
-  .then((results) => {
-    console.log("Results based on category index:", results);
+  // Example: Find documents based on a query
+  const results = await db.find({ age: 30 });
+  console.log("Results based on age:", results);
 
-    // Update documents
-    return jsonDB.update({ category: "A" }, { status: "Updated" });
-  })
-  .then(() => jsonDB.remove({ status: "Inactive" }))
-  .then(() => {
-    // Visualize the data
-    jsonDB.visualize();
+  // Example: Update documents based on a query
+  const updateQuery = { age: 30 };
+  const updates = { age: 31 };
+  const numUpdated = await db.update(updateQuery, updates);
+  console.log(`Updated ${numUpdated} documents`);
 
-    // Export all data
-    const allData = jsonDB.getAll();
-    console.log("All data:", allData);
-  })
-  .catch((error) => console.error("Error:", error.message));
+  // Example: Remove documents based on a query
+  const removeQuery = { age: 31 };
+  const numRemoved = await db.remove(removeQuery);
+  console.log(`Removed ${numRemoved} documents`);
+
+  // Example: Visualize DB in a Console table
+  db.visualize();
+})();
 ```
 
-## API
+For more detailed usage instructions, consult the [Documentation](#documentation) section below.
 
-### `new JsonFlexDB(filePath: string)`
+## Documentation
 
-Creates a new instance of the JsonFlexDB class.
+### `JsonFlexDB(filePath)`
 
-- `filePath`: The file path where the JSON data will be stored.
+Creates a new instance of JsonFlexDB.
 
-### `async createIndex(indexName: string): Promise<void>`
+- `filePath` (string): The file path where the JSON database is stored.
+
+### `load()`
+
+Loads data from the JSON file.
+
+### `save()`
+
+Saves data to the JSON file.
+
+### `ensureLoaded()`
+
+Ensures that data is loaded from the file.
+
+### `createIndex(indexName)`
 
 Creates an index for optimizing queries.
 
-- `indexName`: The name of the index.
+- `indexName` (string): The name of the index.
 
-### `async find(query: Object): Promise<Array<Object>>`
-
-Finds documents based on a query.
-
-- `query`: The query object.
-
-### `async findOne(query: Object): Promise<Object | null>`
+### `findOne(query)`
 
 Finds a single document based on a query.
 
-- `query` (Object): The query object.
+- `query` (object): The query object.
 
-### `async insert(document: Object): Promise<string>`
+Returns: A promise that resolves to the matching document or null if not found.
 
-Inserts a document into the database.
-
-- `document`: The document to insert.
-
-### `async update(query: Object, updates: Object): Promise<number>`
-
-Updates documents based on a query.
-
-- `query`: The query object.
-- `updates`: The updates to apply.
-
-### `async remove(query: Object): Promise<number>`
-
-Removes documents based on a query.
-
-- `query`: The query object.
-
-### `getAll(): Object`
-
-Gets all documents in the database.
-
-### `async getAutoIncrementId(): Promise<number>`
+### `getAutoIncrementId()`
 
 Gets the next available auto-incremented ID.
 
-### `visualize(): void`
+Returns: A promise that resolves to the next available ID.
+
+### `find(query, returnKeys = true)`
+
+Finds matching elements in the data based on the provided query.
+
+- `query` (object): The query object used to filter the data.
+- `returnKeys` (boolean): Indicates whether to return the keys of the matching elements.
+
+Returns: A promise that resolves to an array of matching documents.
+
+### `insert(document)`
+
+Inserts a document into the database.
+
+- `document` (object): The document to insert.
+
+Returns: A promise that resolves to the key of the inserted document.
+
+### `update(query, updates)`
+
+Updates documents based on a query.
+
+- `query` (object): The query object.
+- `updates` (object): The updates to apply.
+
+Returns: A promise that resolves to the number of updated documents.
+
+### `remove(query)`
+
+Removes documents based on a query.
+
+- `query` (object): The query object.
+
+Returns: A promise that resolves to the number of removed documents.
+
+### `getAll()`
+
+Gets all documents in the database.
+
+Returns: An object representing all documents in the database.
+
+### `visualize()`
 
 Visualizes the data in the console using `console.table`.
 
+## Changelog
+
+Refer to the [changelog](CHANGELOG.md) for a detailed history of changes made to JsonFlexDB.
+
+## Contributing
+
+Contributions are welcome!
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+JsonFlexDB is [MIT licensed](LICENSE).

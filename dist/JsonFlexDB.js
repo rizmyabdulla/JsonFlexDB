@@ -1,8 +1,7 @@
 const fs = require("fs").promises;
-const path = require("path");
 
 /**
- * Simple JSON-based database module for basic CRUD operations.
+ * A simple JSON-based database module for basic CRUD operations.
  * @class
  */
 class JsonFlexDB {
@@ -42,17 +41,16 @@ class JsonFlexDB {
    * @async
    * @throws {Error} If there's an issue loading data.
    */
-  async loadData() {
+  async load() {
     try {
       const data = await fs.readFile(this.filePath, "utf-8");
       this.data = JSON.parse(data);
       this.isLoaded = true;
     } catch (error) {
       if (error.code === "ENOENT") {
-        // If the file doesn't exist, initialize with an empty object
         this.data = {};
         this.isLoaded = true;
-        await this.saveData();
+        await this.save();
       } else {
         throw new Error(
           `Failed to load data from ${this.filePath}: ${error.message}`
@@ -66,7 +64,7 @@ class JsonFlexDB {
    * @async
    * @throws {Error} If there's an issue saving data.
    */
-  async saveData() {
+  async save() {
     try {
       const jsonData = JSON.stringify(this.data, null, 2);
       await fs.writeFile(this.filePath, jsonData, "utf-8");
@@ -84,11 +82,7 @@ class JsonFlexDB {
    */
   async ensureLoaded() {
     if (!this.isLoaded) {
-      try {
-        await this.loadData();
-      } catch (error) {
-        throw new Error(`Failed to ensure data is loaded: ${error.message}`);
-      }
+      await this.load();
     }
   }
 
@@ -99,165 +93,19 @@ class JsonFlexDB {
    * @throws {Error} If there's an issue creating the index.
    */
   async createIndex(indexName) {
-    try {
-      await this.ensureLoaded();
+    await this.ensureLoaded();
 
-      if (!this.indexes[indexName]) {
-        this.indexes[indexName] = {};
+    if (!this.indexes[indexName]) {
+      this.indexes[indexName] = {};
 
-        // Build the index
-        for (const key in this.data) {
-          const value = this.data[key][indexName];
+      for (const key in this.data) {
+        const value = this.data[key][indexName];
 
-          if (value !== undefined) {
-            if (!this.indexes[indexName][value]) {
-              this.indexes[indexName][value] = [];
-            }
-            this.indexes[indexName][value].push(key);
-          }
-        }
-      }
-    } catch (error) {
-      throw new Error(
-        `Failed to create index '${indexName}': ${error.message}`
-      );
-    }
-  }
-
-  /**
-   * Finds documents based on a query.
-   * @async
-   * @param {Object} query - The query object.
-   * @returns {Promise<Array>} A promise that resolves to an array of matching documents.
-   * @throws {Error} If there's an issue executing the find operation.
-   */
-  async find(query) {
-    try {
-      await this.ensureLoaded();
-
-      const results = [];
-      const keys = Object.keys(query);
-
-      // If there are indexed fields in the query, use the index
-      for (const key of keys) {
-        if (this.indexes[key]) {
-          const values = Array.isArray(query[key]) ? query[key] : [query[key]];
-
-          for (const value of values) {
-            if (this.indexes[key][value]) {
-              results.push(...this.indexes[key][value]);
-            }
-          }
-        }
-      }
-
-      // Remove duplicates
-      const uniqueResults = Array.from(new Set(results));
-
-      // Filter results based on non-indexed fields
-      const filteredResults = uniqueResults.filter((key) => {
-        for (const queryKey of keys) {
-          if (
-            !this.indexes[queryKey] &&
-            this.data[key][queryKey] !== query[queryKey]
-          ) {
-            return false;
-          }
-        }
-        return true;
-      });
-
-      // Return the actual data
-      return filteredResults.map((key) => this.data[key]);
-    } catch (error) {
-      throw new Error(`Failed to execute find operation: ${error.message}`);
-    }
-  }
-
-  /**
-   * Inserts a document into the database.
-   * @async
-   * @param {Object} document - The document to insert.
-   * @returns {Promise<string>} A promise that resolves to the key of the inserted document.
-   * @throws {Error} If there's an issue executing the insert operation.
-   */
-  async insert(document) {
-    try {
-      await this.ensureLoaded();
-
-      const key = document._id || Math.random().toString(36).substring(7);
-      this.data[key] = document;
-
-      // Update indexes
-      for (const indexName in this.indexes) {
-        const value = document[indexName];
         if (value !== undefined) {
-          if (!this.indexes[indexName][value]) {
-            this.indexes[indexName][value] = [];
-          }
+          this.indexes[indexName][value] = this.indexes[indexName][value] || [];
           this.indexes[indexName][value].push(key);
         }
       }
-
-      await this.saveData();
-      return key;
-    } catch (error) {
-      throw new Error(`Failed to execute insert operation: ${error.message}`);
-    }
-  }
-
-  /**
-   * Updates documents based on a query.
-   * @async
-   * @param {Object} query - The query object.
-   * @param {Object} updates - The updates to apply.
-   * @returns {Promise<number>} A promise that resolves to the number of updated documents.
-   * @throws {Error} If there's an issue executing the update operation.
-   */
-  async update(query, updates) {
-    try {
-      await this.ensureLoaded();
-
-      // Find documents based on the query
-      const results = await this.find(query);
-
-      // Update documents if found
-      for (const result of results) {
-        if (this.data[result]) {
-          Object.assign(this.data[result], updates);
-        }
-      }
-
-      // Save the updated data
-      await this.saveData();
-
-      return results.length;
-    } catch (error) {
-      throw new Error(`Failed to execute update operation: ${error.message}`);
-    }
-  }
-
-  /**
-   * Removes documents based on a query.
-   * @async
-   * @param {Object} query - The query object.
-   * @returns {Promise<number>} A promise that resolves to the number of removed documents.
-   * @throws {Error} If there's an issue executing the remove operation.
-   */
-  async remove(query) {
-    try {
-      await this.ensureLoaded();
-
-      const results = await this.find(query);
-
-      for (const result of results) {
-        delete this.data[result];
-      }
-
-      await this.saveData();
-      return results.length;
-    } catch (error) {
-      throw new Error(`Failed to execute remove operation: ${error.message}`);
     }
   }
 
@@ -272,8 +120,35 @@ class JsonFlexDB {
     try {
       await this.ensureLoaded();
 
-      const results = await this.find(query);
-      return results.length > 0 ? this.data[results[0]] : null;
+      const keys = Object.keys(this.data);
+
+      for (const key of keys) {
+        let match = true;
+
+        for (const queryKey in query) {
+          if (this.indexes[queryKey]) {
+            const values = Array.isArray(query[queryKey])
+              ? query[queryKey]
+              : [query[queryKey]];
+
+            if (!values.includes(this.data[key][queryKey])) {
+              match = false;
+              break;
+            }
+          } else {
+            if (this.data[key][queryKey] !== query[queryKey]) {
+              match = false;
+              break;
+            }
+          }
+        }
+
+        if (match) {
+          return this.data[key];
+        }
+      }
+
+      return null; // Return null if no matching document is found
     } catch (error) {
       throw new Error(`Failed to execute findOne operation: ${error.message}`);
     }
@@ -284,6 +159,7 @@ class JsonFlexDB {
    * @async
    * @returns {Promise<number>} A promise that resolves to the next available ID.
    */
+
   async getAutoIncrementId() {
     await this.ensureLoaded();
 
@@ -299,9 +175,130 @@ class JsonFlexDB {
   }
 
   /**
+   * Finds matching elements in the data based on the provided query.
+   * @async
+   * @param {object} query - The query object used to filter the data.
+   * @param {boolean} returnKeys - Indicates whether to return the keys of the matching elements.
+   * @returns {Promise<Array>} A promise that resolves to an array of matching documents.
+   * @throws {Error} If there's an issue executing the find operation.
+   */
+  async find(query, returnKeys = true) {
+    try {
+      await this.ensureLoaded();
+
+      const results = [];
+      const keys = Object.keys(this.data);
+
+      // If there are indexed fields in the query, use the index
+      for (const key of keys) {
+        let match = true;
+
+        for (const queryKey in query) {
+          if (this.indexes[queryKey]) {
+            const values = Array.isArray(query[queryKey])
+              ? query[queryKey]
+              : [query[queryKey]];
+
+            if (!values.includes(this.data[key][queryKey])) {
+              match = false;
+              break;
+            }
+          } else {
+            if (this.data[key][queryKey] !== query[queryKey]) {
+              match = false;
+              break;
+            }
+          }
+        }
+
+        if (match) {
+          results.push(returnKeys ? key : this.data[key]);
+        }
+      }
+
+      return results;
+    } catch (error) {
+      throw new Error(`Failed to execute find operation: ${error.message}`);
+    }
+  }
+
+  /**
+   * Inserts a document into the database.
+   * @async
+   * @param {Object} document - The document to insert.
+   * @returns {Promise<string>} A promise that resolves to the key of the inserted document.
+   * @throws {Error} If there's an issue executing the insert operation.
+   */
+
+  async insert(document) {
+    await this.ensureLoaded();
+
+    const key = document._id || Math.random().toString(36).substring(7);
+    this.data[key] = document;
+
+    for (const indexName in this.indexes) {
+      const value = document[indexName];
+      if (value !== undefined) {
+        this.indexes[indexName][value] = this.indexes[indexName][value] || [];
+        this.indexes[indexName][value].push(key);
+      }
+    }
+
+    await this.save();
+    return key;
+  }
+
+  /**
+   * Updates documents based on a query.
+   * @async
+   * @param {Object} query - The query object.
+   * @param {Object} updates - The updates to apply.
+   * @returns {Promise<number>} A promise that resolves to the number of updated documents.
+   * @throws {Error} If there's an issue executing the update operation.
+   */
+
+  async update(query, updates) {
+    await this.ensureLoaded();
+
+    const results = await this.find(query);
+
+    for (const result of results) {
+      if (this.data[result]) {
+        Object.assign(this.data[result], updates);
+      }
+    }
+
+    await this.save();
+    return results.length;
+  }
+
+  /**
+   * Removes documents based on a query.
+   * @async
+   * @param {Object} query - The query object.
+   * @returns {Promise<number>} A promise that resolves to the number of removed documents.
+   * @throws {Error} If there's an issue executing the remove operation.
+   */
+
+  async remove(query) {
+    await this.ensureLoaded();
+
+    const results = await this.find(query);
+
+    for (const result of results) {
+      console.log(result);
+      delete this.data[result];
+    }
+
+    await this.save();
+    return results.length;
+  }
+
+  /**
    * Gets all documents in the database.
    * @returns {Object} An object representing all documents in the database.
    */
+
   getAll() {
     return this.data;
   }
