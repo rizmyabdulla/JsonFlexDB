@@ -25,12 +25,30 @@ npm install json-flex-db
 ```javascript
 const JsonFlexDB = require("json-flex-db");
 
+// New Feature
+// Optional: Define a schema for your data
+const schema = {
+  name: { type: "string", required: true },
+  age: { type: "number" },
+  email: { type: "string", validate: (value) => /\S+@\S+\.\S+/.test(value) },
+};
+
 // Initialize JsonFlexDB with the file path for your JSON data
-const db = new JsonFlexDB("data.json");
+const db = new JsonFlexDB("data.json", schema);
 
 // Example: Insert a new document
-const document1 = { _id: "1", name: "John Doe", age: 30 };
-const document2 = { _id: "2", name: "Sam Wilson", age: 32 };
+const document1 = {
+  _id: "1",
+  name: "John Doe",
+  age: 30,
+  email: "john@gmail.com",
+};
+const document2 = {
+  _id: "2",
+  name: "Sam Wilson",
+  age: 32,
+  email: "sam@gmail.com",
+};
 (async () => {
   // Example: Insert Document1 and Document2
   await db.insert(document1);
@@ -60,11 +78,12 @@ For more detailed usage instructions, consult the [Documentation](#documentation
 
 ## Documentation
 
-### `JsonFlexDB(filePath)`
+### `JsonFlexDB(filePath, schema = {})`
 
 Creates a new instance of JsonFlexDB.
 
 - `filePath` (string): The file path where the JSON database is stored.
+- `schema` (object, optional): The schema for validation (default is an empty object).
 
 ### `load()`
 

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2024-03-25
+
+### Added
+
+- Validation support for `insert`, `update`, `findOne`, and `find` methods against provided schema.
+
+### Changed
+
+- Improved error messages for validation failures.
+
 ## [2.0.0] - 2024-01-19
 
 ### Added
