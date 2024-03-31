@@ -1,4 +1,4 @@
-# JsonFlexDB
+# JsonFlexDB [![Downloads](https://img.shields.io/npm/dt/json-flex-db?logo=npm&style=flat-square)](https://npmjs.com/package/json-flex-db)
 
 JsonFlexDB is a lightweight and versatile JSON-based database module for Node.js. It provides a simple yet powerful solution for handling data persistence in your applications. JsonFlexDB is suitable for a wide range of projects, from small-scale applications to large-scale systems.
 
